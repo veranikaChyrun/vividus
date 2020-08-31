@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.vividus.ui.web.action.search.ActionAttributeType;
 import org.vividus.ui.web.action.search.SearchAttributes;
 import org.vividus.ui.web.action.search.SearchParameters;
@@ -38,9 +39,8 @@ class SearchAttributesConversionUtilsTests
     private static final String ENABLED = "enabled";
     private static final String ID = "id";
     private static final String INVALID_LOCATOR_MESSAGE = "Invalid locator format. "
-            + "Expected matches [(?:By\\.)?([a-zA-Z]+)\\((.+?)\\):?([a-zA-Z]*)?] Actual: [";
+            + "Expected matches [(?:By\\.)?([a-zA-Z]+)\\((.+?)\\)(?::([a-zA-Z]+))?] Actual: [";
     private static final char CLOSING_BRACKET = ']';
-    private static final String INVALID_LOCATOR = "To.xpath(.a)";
     private static final String TEXT = "text";
 
     @ParameterizedTest
@@ -67,12 +67,16 @@ class SearchAttributesConversionUtilsTests
         assertEquals("Unsupported filter type: notFilter", exception.getMessage());
     }
 
-    @Test
-    void testConvertToSearchAttributesInvalidLocatorFormat()
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "To.xpath(.a)",
+        "By.id(id):"
+    })
+    void testConvertToSearchAttributesInvalidLocatorFormat(String invalidLocator)
     {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> SearchAttributesConversionUtils.convertToSearchAttributes(INVALID_LOCATOR));
-        assertEquals(INVALID_LOCATOR_MESSAGE + INVALID_LOCATOR + CLOSING_BRACKET, exception.getMessage());
+            () -> SearchAttributesConversionUtils.convertToSearchAttributes(invalidLocator));
+        assertEquals(INVALID_LOCATOR_MESSAGE + invalidLocator + CLOSING_BRACKET, exception.getMessage());
     }
 
     @Test

@@ -2,7 +2,7 @@
 
 == Description
 
-Describes elements locator. Should match regular expression: `(?:By\\.)?([a-zA-Z]+)\\((.+?)\\):?([a-zA-Z]*)?`
+Describes elements locator. Should match regular expression: `(?:By\\.)?([a-zA-Z]+)\\((.+?)\\)(?::([a-zA-Z]+))?`
 
 == Syntax
 

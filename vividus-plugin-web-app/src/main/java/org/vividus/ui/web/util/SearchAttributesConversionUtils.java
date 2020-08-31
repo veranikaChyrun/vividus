@@ -36,7 +36,7 @@ public final class SearchAttributesConversionUtils
     private static final String EMPTY = "";
     private static final int ELEMENT_TYPE_GROUP = 3;
     private static final char CLOSING_BRACKET = ']';
-    private static final String LOCATOR_FORMAT = "(?:By\\.)?([a-zA-Z]+)\\((.+?)\\):?([a-zA-Z]*)?";
+    private static final String LOCATOR_FORMAT = "(?:By\\.)?([a-zA-Z]+)\\((.+?)\\)(?::([a-zA-Z]+))?";
     private static final Pattern SEARCH_ATTRIBUTE_PATTERN = Pattern.compile(LOCATOR_FORMAT);
     private static final Pattern FILTER_PATTERN = Pattern.compile("([a-zA-Z]+)(?:\\()([^()]*)(?:\\))");
 
@@ -63,7 +63,7 @@ public final class SearchAttributesConversionUtils
             String searchValue = matcher.group(SEARCH_VALUE_GROUP);
             String elementType = matcher.group(ELEMENT_TYPE_GROUP);
             SearchAttributes searchAttributes = convertToSearchAttributes(actionAttributeType, searchValue);
-            if (!elementType.isEmpty())
+            if (elementType != null)
             {
                 searchAttributes.getSearchParameters().setVisibility(Visibility.getElementType(elementType));
             }
