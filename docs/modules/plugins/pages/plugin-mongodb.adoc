@@ -1,1 +1,121 @@
-include::ROOT:page$under-construction.adoc[]
+= MongoDB Plugin
+
+The plugin provides functionality to interact with https://www.mongodb.com/[MongoDB].
+
+== Installation
+
+.build.gradle
+[source,gradle,subs="attributes+"]
+----
+implementation(group: 'org.vividus', name: 'vividus-plugin-mongodb', version: '{current-version}')
+----
+
+== Properties
+
+It's allowed to configure unlimited number of MongoDB connections via mechanism of the dynamic properties. The properties prefix example is:
+```properties
+mongodb.connection.mock=mongodb+srv://username:password@mock-zzw4a.mongodb.net/test?retryWrites=true&w=majority
+```
+where `mock` is a key used to refer MongoDB connection in the steps. The key is defined by users, must be unique and can't contain dots.
+
+== Steps
+
+=== Execute native command
+
+Executes a mongo native command against a mongo database and saves command's result to a variable
+
+[NOTE]
+====
+* https://docs.mongodb.com/manual/reference/command/[Native commands]
+* database in query is not required to be the same as the authentication database
+* does not support the database cursors logic, so if you use find command to query more than 101 document then adjust `batchSize` property according to the number of documents being queried
+====
+
+[source,gherkin]
+----
+When I execute command `$command` against `$dbName` database on `$instanceKey` MongoDB instance and save result to $scopes variable `$variableName`
+----
+
+* `$command` - Native command to perform
+* `$dbName` - Database name
+* `$instanceKey` - Key of particular connection under `mongodb.connection.` prefix
+* `$scopes` - xref:parameters:variable-scope.adoc[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store results in JSON format.
+
+.Find employees who are older than 20 years
+[source,gherkin]
+----
+When I execute command `
+{
+    find: "employees",
+    filter: { age: { $gte: 20 } },
+    sort: { age: 1 },
+    projection: { age: 1, name: 1, _id: 0 },
+    batchSize: 500
+}
+` against `users` database on `mock` MongoDB instance and save result to SCENARIO variable `find`
+----
+
+=== Execute chained commands
+
+Executes assembled sequence of predefined commands and performs them against mongo database and saves the result to a variable
+
+.Commands
+[cols="1,1,2,2", options="header"]
+|===
+
+|Name
+|Type
+|Description
+|Example
+
+|find
+|source
+|selects documents in a collection, takes JSON as an argument
+|`{ age: { $gte: 20 }, city: "minsk" }`
+
+|projection
+|intermediate
+|determine which fields to include in the returned documents, takes JSON as an argument
+|`{ age: 1, city: 1, name: 0 }`
+
+|count
+|terminal
+|counts the number of documents in a collection, takes no arguments
+|
+
+|collect
+|terminal
+|collects previously found documents into JSON format, takes no arguments
+|
+
+|===
+
+[NOTE]
+====
+* command sequence must start with `source` command followed by any number of `intermediate` commands and end with `terminal` command
+* supports database cursors logic
+====
+
+[source,gherkin]
+----
+When I execute commands $commands in `$collectionName` collection against `$dbName` database on `$instanceKey` MongoDB instance and save result to $scopes variable `$variableName`
+----
+
+* `$commands` - Sequence of commands to execute
+* `$collectionName` - Collection name to retrieve documents from
+* `$dbName` - Database name
+* `$instanceKey` - Key of particular connection under `mongodb.connection.` prefix
+* `$scopes` - xref:parameters:variable-scope.adoc[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store results in JSON format.
+
+.Find employees who are older than 20 years
+[source,gherkin]
+----
+When I execute commands
+|command   |argument                   |
+|find      |{ age: { $gte: 20 } }      |
+|projection|{ age: 1, name: 1, _id: 0 }|
+|count     |                           |
+ in `employees` collection against `users` database on `mock` MongoDB instance and save result to SCENARIO variable `find`
+----
