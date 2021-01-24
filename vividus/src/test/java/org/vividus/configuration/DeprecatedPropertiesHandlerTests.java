@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,10 @@ import org.mockito.Mockito;
 
 class DeprecatedPropertiesHandlerTests
 {
+    private static final String FALSE = "false";
+
+    private static final String TRUE = "true";
+
     private static final String PROP1 = "norm1";
 
     private static final String PROP2 = "norm2";
@@ -118,6 +122,29 @@ class DeprecatedPropertiesHandlerTests
         props.put(PROP1, prop1Value);
         handler.replaceDeprecated(props, props);
         assertEquals(prop1Value, props.getProperty(PROP1));
+    }
+
+    @Test
+    void shouldFlipBooleanValueIfKeyHasExclamationMarkBeforeDeprecatedPropertyValue()
+    {
+        Properties deprecatedProperties = new Properties();
+        String newKey = "new.key";
+        deprecatedProperties.put("!some.key", newKey);
+        String newKey1 = "new.key1";
+        deprecatedProperties.put("!some.key1", newKey1);
+        String newKey2 = "new.key2";
+        deprecatedProperties.put("!some.key2", newKey2);
+        DeprecatedPropertiesHandler handler = new DeprecatedPropertiesHandler(deprecatedProperties, PLACEHOLDER_PREFIX,
+                PLACEHOLDER_SUFFIX);
+        Properties properties = new Properties();
+        properties.put("some.key", TRUE);
+        properties.put("some.key1", FALSE);
+        String fortyTwo = "42";
+        properties.put("some.key2", fortyTwo);
+        handler.replaceDeprecated(properties, properties);
+        assertEquals(FALSE, properties.get(newKey));
+        assertEquals(TRUE, properties.get(newKey1));
+        assertEquals(fortyTwo, properties.get(newKey2));
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.vividus.configuration;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -26,6 +28,10 @@ import org.slf4j.LoggerFactory;
 
 public class DeprecatedPropertiesHandler
 {
+    private static final String FALSE = "false";
+
+    private static final Pattern BOOLEAN = Pattern.compile("false|true");
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DeprecatedPropertiesHandler.class);
 
     private static final String PATTERN_FORMAT = "%1$s(.[^%1$s%2$s]*)%2$s";
@@ -38,11 +44,26 @@ public class DeprecatedPropertiesHandler
     private final Properties deprecatedProperties;
     private final String placeholderWarnMsg;
     private final Pattern placeholderPattern;
+    private final List<String> keysToFlipBooleanValue;
 
     public DeprecatedPropertiesHandler(Properties deprecatedProperties, String placeholderPrefix,
             String placeholderSuffix)
     {
-        this.deprecatedProperties = deprecatedProperties;
+        Properties properties = new Properties();
+        List<String> keysToFlipBooleanValue = new ArrayList<>();
+        for (Entry<Object, Object> entry : deprecatedProperties.entrySet())
+        {
+            String key = (String) entry.getKey();
+            String value = (String) entry.getValue();
+            if (key.charAt(0) == '!')
+            {
+                key = key.substring(1);
+                keysToFlipBooleanValue.add(key);
+            }
+            properties.put(key, value);
+        }
+        this.deprecatedProperties = properties;
+        this.keysToFlipBooleanValue = keysToFlipBooleanValue;
 
         placeholderPattern = Pattern.compile(String.format(PATTERN_FORMAT, Pattern.quote(placeholderPrefix),
                 Pattern.quote(placeholderSuffix)));
@@ -89,6 +110,10 @@ public class DeprecatedPropertiesHandler
                 String newPropertyValue = replaceInProperties.getProperty(newPropertyKey);
                 if (newPropertyValue == null || !placeholderPattern.matcher(newPropertyValue).find())
                 {
+                    if (keysToFlipBooleanValue.contains(key) && BOOLEAN.matcher(value).matches())
+                    {
+                        value = value.equals(FALSE) ? "true" : FALSE;
+                    }
                     replaceInProperties.put(newPropertyKey, value);
                 }
             }
