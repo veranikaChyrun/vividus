@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 the original author or authors.
+ * Copyright 2019-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ class CucumberScenarioConverterTests
     private static final String STEP_VALUE = "When I perform action ";
     private static final String KEY = "key ";
     private static final String VALUE = "value ";
+    private static final String ASSERT_STEPS = "org.vividus.bdd.steps.AssertSteps.verifyIfAssertionsPassed()";
 
     @Test
     void shouldConvertPlainScenario()
@@ -43,7 +44,8 @@ class CucumberScenarioConverterTests
             createStep(STEP_VALUE + 1),
             createStep(STEP_VALUE + 2),
             createStep("!-- " + STEP_VALUE + 3),
-            createStep(STEP_VALUE + 4)
+            createStep(STEP_VALUE + 4),
+            createStep(ASSERT_STEPS)
         );
         scenario.setSteps(steps);
 
@@ -73,7 +75,8 @@ class CucumberScenarioConverterTests
         List<Step> steps = List.of(
             createStep(STEP_VALUE + 1),
             createStep(STEP_VALUE + 2),
-            createStep(STEP_VALUE + 3)
+            createStep(STEP_VALUE + 3),
+            createStep(ASSERT_STEPS)
         );
         example.setSteps(steps);
         examples.setExamples(List.of(example));
